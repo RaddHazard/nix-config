@@ -1,41 +1,55 @@
-{ config, pkgs, ... }:
+# This is your home-manager configuration file
+# Use this to configure your home environment (it replaces ~/.config/nixpkgs/home.nix)
 
-{
-  # TODO please change the username & home direcotry to your own
-  home.username = "jacob";
-  home.homeDirectory = "/home/jacob";
+{ inputs, outputs, lib, config, pkgs, ... }: {
+  # You can import other home-manager modules here
+  imports = [
+    # If you want to use modules your own flake exports (from modules/home-manager):
+    # outputs.homeManagerModules.example
 
-  # link the configuration file in current directory to the specified location in home directory
-  # home.file.".config/i3/wallpaper.jpg".source = ./wallpaper.jpg;
+    # Or modules exported from other flakes (such as nix-colors):
+    # inputs.nix-colors.homeManagerModules.default
 
-  # link all files in `./scripts` to `~/.config/i3/scripts`
-  # home.file.".config/i3/scripts" = {
-  #   source = ./scripts;
-  #   recursive = true;   # link recursively
-  #   executable = true;  # make all files executable
-  # };
+    # You can also split up your configuration and import pieces of it here:
+    # ./nvim.nix
+  ];
 
-  # encode the file content in nix configuration file directly
-  # home.file.".xxx".text = ''
-  #     xxx
-  # '';
+  nixpkgs = {
+    # You can add overlays here
+    overlays = [
+      # Add overlays your own flake exports (from overlays and pkgs dir):
+      outputs.overlays.additions
+      outputs.overlays.modifications
+      outputs.overlays.unstable-packages
 
-  # set cursor size and dpi for 4k monitor
-  #xresources.properties = {
-  #  "Xcursor.size" = 16;
-  #  "Xft.dpi" = 172;
-  #};
+      # You can also add overlays exported from other flakes:
+      # neovim-nightly-overlay.overlays.default
 
-  # basic configuration of git, please change to your own
-  programs.git = {
-    enable = true;
-    userName = "Jacob Carter";
-    userEmail = "jcarter@rmrehab.com";
+      # Or define it inline, for example:
+      # (final: prev: {
+      #   hi = final.hello.overrideAttrs (oldAttrs: {
+      #     patches = [ ./change-hello-to-hi.patch ];
+      #   });
+      # })
+    ];
+    # Configure your nixpkgs instance
+    config = {
+      # Disable if you don't want unfree packages
+      allowUnfree = true;
+      # Workaround for https://github.com/nix-community/home-manager/issues/2942
+      allowUnfreePredicate = (_: true);
+    };
   };
 
-  # Packages that should be installed to the user profile.
-  home.packages = with pkgs; [
-    # here is some command line tools I use frequently
+  home = {
+    username = "jacob";
+    homeDirectory = "/home/jacob";
+  };
+
+  # Add stuff for your user as you see fit:
+  # programs.neovim.enable = true;
+  home.packages = with pkgs; [ 
+    # here are some command line tools I use frequently
     # feel free to add your own or remove some of them
 
     # archives
@@ -98,26 +112,53 @@
     ethtool
     pciutils # lspci
     usbutils # lsusb
-  ];
 
-  # starship - an customizable prompt for any shell
-  #programs.starship = {
-  #  enable = true;
-  #  # custom settings
-  #  settings = {
-  #    add_newline = false;
-  #    aws.disabled = true;
-  #    gcloud.disabled = true;
-  #    line_break.disabled = true;
-  #  };
-  #};
-  
- # hyprland
-  programs.hyprland = {
-    enable = true;
-    xwayland.enable = true;
-    nvidiaPatches = true;
-  };
+    # old TODO categorize
+    xfce.thunar
+    #libsecret
+    vscode
+    zsh
+    tmux
+    google-chrome
+    chromium
+    firefox
+    mesa
+    steam
+    asdf-vm
+    rustup
+    elixir
+    #mako
+    #eww-wayland
+    #hyprpaper
+    #hyprpicker
+    #wofi
+    alsa-scarlett-gui
+    #xdg-desktop-portal-hyprland
+    #xdg-utils
+    #wayland
+    spotify
+    spotifyd
+    rustdesk
+    slack
+    anki
+    mupen64plus
+    pcsx2
+    dolphin-emu
+    mame
+    torrential
+    qbittorrent
+    discord
+    mold
+    gimp
+    inkscape
+    audacity
+    htop
+    obs-studio
+    audacious
+    vlc
+    timeshift
+    godot_4
+  ];
 
   # nvidia
   hardware.opengl = {
@@ -130,6 +171,13 @@
     open = true;
     nvidiaSettings = true;
     package = config.boot.kernelPackages.nvidiaPackages.stable;
+  };
+
+  # hyprland
+  programs.hyprland = {
+    enable = true;
+    xwayland.enable = true;
+    nvidiaPatches = true;
   };
 
   # kitty
@@ -155,32 +203,47 @@
     };
   };
 
-  programs.bash = {
-    enable = true;
-    enableCompletion = true;
-    # TODO add your cusotm bashrc here
-    bashrcExtra = ''
-      export PATH="$PATH:$HOME/bin:$HOME/.local/bin:$HOME/go/bin"
-    '';
+  #programs.bash = {
+  #  enable = true;
+  #  enableCompletion = true;
+  #  # TODO add your custom bashrc here
+  #  bashrcExtra = ''
+  #    export PATH="$PATH:$HOME/bin:$HOME/.local/bin:$HOME/go/bin"
+  #  '';
+  #
+  #  # set some aliases, feel free to add more or remove some
+  #  shellAliases = {
+  #    k = "kubectl";
+  #    urldecode = "python3 -c 'import sys, urllib.parse as ul; print(ul.unquote_plus(sys.stdin.read()))'";
+  #    urlencode = "python3 -c 'import sys, urllib.parse as ul; print(ul.quote_plus(sys.stdin.read()))'";
+  #  };
+  #};
 
-    # set some aliases, feel free to add more or remove some
-    shellAliases = {
-      k = "kubectl";
-      urldecode = "python3 -c 'import sys, urllib.parse as ul; print(ul.unquote_plus(sys.stdin.read()))'";
-      urlencode = "python3 -c 'import sys, urllib.parse as ul; print(ul.quote_plus(sys.stdin.read()))'";
-    };
+  # starship - an customizable prompt for any shell
+  #programs.starship = {
+  #  enable = true;
+  #  # custom settings
+  #  settings = {
+  #    add_newline = false;
+  #    aws.disabled = true;
+  #    gcloud.disabled = true;
+  #    line_break.disabled = true;
+  #  };
+  #};
+
+  # Enable home-manager
+  programs.home-manager.enable = true;
+
+  # basic configuration of git, please change to your own
+  programs.git = {
+    enable = true;
+    userName = "Jacob Carter";
+    userEmail = "jcarter@rmrehab.com";
   };
 
-  # This value determines the home Manager release that your
-  # configuration is compatible with. This helps avoid breakage
-  # when a new home Manager release introduces backwards
-  # incompatible changes.
-  #
-  # You can update home Manager without changing this value. See
-  # the home Manager release notes for a list of state version
-  # changes in each release.
-  home.stateVersion = "23.05";
+  # Nicely reload system units when changing configs
+  systemd.user.startServices = "sd-switch";
 
-  # Let home Manager install and manage itself.
-  programs.home-manager.enable = true;
+  # https://nixos.wiki/wiki/FAQ/When_do_I_update_stateVersion
+  home.stateVersion = "23.05";
 }
